@@ -11,6 +11,52 @@ h1 {
   margin-bottom: 1.5rem;
 }
 
+.stats-panel {
+  background: #f5f7fa;
+  border: 1px solid #e4e7eb;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.stats-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.level-badge {
+  font-weight: 600;
+  color: #2563eb;
+}
+
+.quests-completed {
+  color: #52606d;
+}
+
+.progress-bar {
+  background: #e4e7eb;
+  border-radius: 999px;
+  height: 10px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  background: #2563eb;
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.xp-label {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  color: #7b8794;
+  text-align: right;
+}
+
 .add-form {
   display: flex;
   flex-wrap: wrap;
