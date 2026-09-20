@@ -32,6 +32,37 @@ h1 {
 
 .pet-avatar {
   display: block;
+  cursor: pointer;
+}
+
+.pet-stage {
+  position: relative;
+}
+
+.pet-hearts {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.pet-heart {
+  position: absolute;
+  top: 45%;
+  left: 50%;
+  font-size: 1.4rem;
+  transform: translate(-50%, 0);
+  animation: pet-heart-float 0.9s ease-out forwards;
+}
+
+@keyframes pet-heart-float {
+  0% {
+    opacity: 1;
+    transform: translate(calc(-50% + var(--drift)), 0) scale(0.7);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--drift)), -70px) scale(1.3);
+  }
 }
 
 .pet-name {

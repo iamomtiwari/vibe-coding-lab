@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import PetAvatar from './PetAvatar'
 import './App.css'
 
@@ -88,6 +88,8 @@ function App() {
   const [todos, setTodos] = useState(loadTodos)
   const [profile, setProfile] = useState(loadProfile)
   const [pet, setPet] = useState(loadPet)
+  const [petExpression, setPetExpression] = useState('neutral')
+  const smileTimeoutRef = useRef(null)
   const [text, setText] = useState('')
   const [category, setCategory] = useState('')
   const [repeat, setRepeat] = useState('none')
@@ -104,6 +106,8 @@ function App() {
   useEffect(() => {
     localStorage.setItem(PET_STORAGE_KEY, JSON.stringify(pet))
   }, [pet])
+
+  useEffect(() => () => clearTimeout(smileTimeoutRef.current), [])
 
   // Check for due recurring todos on load, then poll periodically
   // in case the app is left open across the reset boundary.
@@ -134,29 +138,39 @@ function App() {
   }
 
   function toggleTodo(id) {
+    const todo = todos.find((t) => t.id === id)
+    if (!todo) return
+    const nowDone = !todo.done
+
     setTodos((prev) =>
-      prev.map((todo) => {
-        if (todo.id !== id) return todo
-        const done = !todo.done
-        return {
-          ...todo,
-          done,
-          lastCompletedAt: done && todo.repeat !== 'none' ? Date.now() : null,
-        }
-      })
+      prev.map((t) =>
+        t.id === id
+          ? {
+              ...t,
+              done: nowDone,
+              lastCompletedAt: nowDone && t.repeat !== 'none' ? Date.now() : null,
+            }
+          : t
+      )
     )
+
     // Manually checking a task awards XP; manually unchecking (an undo)
     // takes it back. Automatic recurring resets skip this function entirely,
     // so XP already earned for a past completion is never clawed back.
-    setProfile((prev) => {
-      const todo = todos.find((t) => t.id === id)
-      const nowDone = todo ? !todo.done : true
-      const delta = nowDone ? 1 : -1
-      return {
-        xp: Math.max(0, prev.xp + delta * XP_PER_TASK),
-        questsCompleted: Math.max(0, prev.questsCompleted + delta),
-      }
-    })
+    const delta = nowDone ? 1 : -1
+    setProfile((prev) => ({
+      xp: Math.max(0, prev.xp + delta * XP_PER_TASK),
+      questsCompleted: Math.max(0, prev.questsCompleted + delta),
+    }))
+
+    if (nowDone) {
+      setPetExpression('happy')
+      clearTimeout(smileTimeoutRef.current)
+      smileTimeoutRef.current = setTimeout(
+        () => setPetExpression('neutral'),
+        2500
+      )
+    }
   }
 
   function deleteTodo(id) {
@@ -196,7 +210,11 @@ function App() {
 
       <section className="pet-panel">
         <div className="pet-display">
-          <PetAvatar shape={pet.shape} color={pet.color} />
+          <PetAvatar
+            shape={pet.shape}
+            color={pet.color}
+            expression={petExpression}
+          />
           <span className="pet-name">{pet.name || 'Unnamed pet'}</span>
         </div>
         <div className="pet-controls">
