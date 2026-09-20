@@ -18,8 +18,15 @@ function Plant({ grown, colorIndex }) {
   )
 }
 
+// A todo counts as grown once it's ever been checked off — either the
+// sticky `grown` flag (survives recurring resets) or, as a fallback for
+// todos completed before this flag existed, simply being currently done.
+function isGrown(todo) {
+  return Boolean(todo.grown || todo.done)
+}
+
 function TodoForest({ todos }) {
-  const grownCount = todos.filter((todo) => todo.grown).length
+  const grownCount = todos.filter(isGrown).length
 
   return (
     <section className="forest-panel">
@@ -31,7 +38,7 @@ function TodoForest({ todos }) {
       ) : (
         <div className="forest-grid">
           {todos.map((todo, i) => (
-            <Plant key={todo.id} grown={todo.grown} colorIndex={i} />
+            <Plant key={todo.id} grown={isGrown(todo)} colorIndex={i} />
           ))}
         </div>
       )}

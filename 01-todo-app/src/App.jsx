@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import Clock from './Clock'
 import PetAvatar, { ACCESSORIES, PET_COLORS, PET_SHAPES } from './PetAvatar'
 import TodoForest from './TodoForest'
 import './App.css'
@@ -25,6 +26,19 @@ const REPEAT_LABELS = {
   none: 'One-time',
   daily: 'Daily',
   weekly: 'Weekly',
+}
+
+function formatResetTime(timestamp, repeat) {
+  const date = new Date(timestamp)
+  const time = date.toLocaleTimeString(undefined, {
+    hour: 'numeric',
+    minute: '2-digit',
+  })
+  if (repeat === 'weekly') {
+    const day = date.toLocaleDateString(undefined, { weekday: 'short' })
+    return `${day} ${time}`
+  }
+  return time
 }
 
 function loadTodos() {
@@ -54,15 +68,15 @@ function loadPet() {
   }
 }
 
-// Level N requires N*100 XP to reach level N+1 (100, 200, 300, ...).
+// Level N requires N*20 XP to reach level N+1 (20, 40, 60, ...).
 export function computeLevelInfo(xp) {
   let level = 1
   let remaining = xp
-  let xpForNextLevel = level * 100
+  let xpForNextLevel = level * 20
   while (remaining >= xpForNextLevel) {
     remaining -= xpForNextLevel
     level += 1
-    xpForNextLevel = level * 100
+    xpForNextLevel = level * 20
   }
   return { level, xpIntoLevel: remaining, xpForNextLevel }
 }
@@ -260,6 +274,7 @@ function App() {
   return (
     <main className="app">
       <h1>Todo App</h1>
+      <Clock />
 
       <div className="layout">
         <div className="main-column">
@@ -323,6 +338,16 @@ function App() {
                         {todo.repeat !== 'none' && (
                           <span className="repeat-badge">
                             ↻ {REPEAT_LABELS[todo.repeat]}
+                          </span>
+                        )}
+                        {todo.done && todo.repeat !== 'none' && todo.lastCompletedAt && (
+                          <span className="reset-hint">
+                            resets{' '}
+                            {formatResetTime(
+                              todo.lastCompletedAt +
+                                REPEAT_INTERVAL_MS[todo.repeat],
+                              todo.repeat
+                            )}
                           </span>
                         )}
                       </label>

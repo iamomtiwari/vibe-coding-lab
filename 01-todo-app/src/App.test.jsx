@@ -43,7 +43,7 @@ describe('todo CRUD', () => {
     )
 
     expect(screen.getByText('1 quest completed')).toBeInTheDocument()
-    expect(screen.getByText('10 / 100 XP to next level')).toBeInTheDocument()
+    expect(screen.getByText('10 / 20 XP to next level')).toBeInTheDocument()
   })
 
   it('unchecking a completed todo refunds xp and quest count', async () => {
@@ -56,7 +56,7 @@ describe('todo CRUD', () => {
     await user.click(checkbox)
 
     expect(screen.getByText('0 quests completed')).toBeInTheDocument()
-    expect(screen.getByText('0 / 100 XP to next level')).toBeInTheDocument()
+    expect(screen.getByText('0 / 20 XP to next level')).toBeInTheDocument()
   })
 
   it('deletes a todo', async () => {
@@ -92,6 +92,18 @@ describe('todo CRUD', () => {
     await addTodo(user, 'Daily stretch', { repeat: 'daily' })
 
     expect(screen.getByText('↻ Daily')).toBeInTheDocument()
+  })
+
+  it('shows a reset-time hint once a recurring todo is completed', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    await addTodo(user, 'Daily stretch', { repeat: 'daily' })
+
+    expect(screen.queryByText(/resets/)).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('checkbox', { name: /Daily stretch/ }))
+
+    expect(screen.getByText(/resets/)).toBeInTheDocument()
   })
 })
 
@@ -212,5 +224,17 @@ describe('todo forest', () => {
     await user.click(checkbox)
 
     expect(screen.getByText('Forest · 0 / 1 grown')).toBeInTheDocument()
+  })
+
+  it('shows legacy todos (done, but with no stored grown flag) as grown', () => {
+    localStorage.setItem(
+      'todo-app.todos',
+      JSON.stringify([
+        { id: '1', text: 'Legacy task', done: true, repeat: 'none' },
+      ])
+    )
+    render(<App />)
+
+    expect(screen.getByText('Forest · 1 / 1 grown')).toBeInTheDocument()
   })
 })
