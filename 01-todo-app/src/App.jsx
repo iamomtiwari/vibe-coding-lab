@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import PetAvatar from './PetAvatar'
+import PetAvatar, { ACCESSORIES } from './PetAvatar'
 import './App.css'
 
 const STORAGE_KEY = 'todo-app.todos'
@@ -9,7 +9,12 @@ const UNCATEGORIZED = 'Uncategorized'
 const XP_PER_TASK = 10
 
 const PET_SHAPES = ['round', 'square', 'star']
-const DEFAULT_PET = { name: 'Buddy', shape: 'round', color: '#f4a261' }
+const DEFAULT_PET = {
+  name: 'Buddy',
+  shape: 'round',
+  color: '#f4a261',
+  equipped: [],
+}
 
 const REPEAT_INTERVAL_MS = {
   daily: 24 * 60 * 60 * 1000,
@@ -181,6 +186,19 @@ function App() {
     setTodos((prev) => prev.filter((todo) => !todo.done))
   }
 
+  function toggleAccessory(id) {
+    const accessory = ACCESSORIES.find((a) => a.id === id)
+    if (!accessory || computeLevelInfo(profile.xp).level < accessory.unlockLevel) {
+      return
+    }
+    setPet((prev) => ({
+      ...prev,
+      equipped: prev.equipped.includes(id)
+        ? prev.equipped.filter((e) => e !== id)
+        : [...prev.equipped, id],
+    }))
+  }
+
   const knownCategories = Array.from(
     new Set(todos.map((todo) => todo.category).filter(Boolean))
   ).sort()
@@ -204,6 +222,13 @@ function App() {
   const { level, xpIntoLevel, xpForNextLevel } = computeLevelInfo(profile.xp)
   const progressPercent = Math.round((xpIntoLevel / xpForNextLevel) * 100)
 
+  // If XP ever drops below an accessory's unlock threshold (e.g. undoing a
+  // completion), hide it on the pet without discarding the equip choice.
+  const unlockedEquipped = pet.equipped.filter((id) => {
+    const accessory = ACCESSORIES.find((a) => a.id === id)
+    return accessory && level >= accessory.unlockLevel
+  })
+
   return (
     <main className="app">
       <h1>Todo App</h1>
@@ -214,6 +239,7 @@ function App() {
             shape={pet.shape}
             color={pet.color}
             expression={petExpression}
+            equipped={unlockedEquipped}
           />
           <span className="pet-name">{pet.name || 'Unnamed pet'}</span>
         </div>
@@ -255,6 +281,34 @@ function App() {
             />
           </label>
         </div>
+      </section>
+
+      <section className="accessories-panel">
+        <h2 className="group-title">Accessories</h2>
+        <ul className="accessories-list">
+          {ACCESSORIES.map((accessory) => {
+            const unlocked = level >= accessory.unlockLevel
+            const isEquipped = pet.equipped.includes(accessory.id)
+            return (
+              <li key={accessory.id} className={unlocked ? '' : 'locked'}>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={unlocked && isEquipped}
+                    disabled={!unlocked}
+                    onChange={() => toggleAccessory(accessory.id)}
+                  />
+                  {accessory.label}
+                </label>
+                {!unlocked && (
+                  <span className="unlock-hint">
+                    Unlocks at level {accessory.unlockLevel}
+                  </span>
+                )}
+              </li>
+            )
+          })}
+        </ul>
       </section>
 
       <section className="stats-panel">
