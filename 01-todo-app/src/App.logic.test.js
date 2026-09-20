@@ -6,41 +6,41 @@ describe('computeLevelInfo', () => {
     expect(computeLevelInfo(0)).toEqual({
       level: 1,
       xpIntoLevel: 0,
-      xpForNextLevel: 100,
+      xpForNextLevel: 20,
     })
   })
 
-  it('stays level 1 until the level-1 threshold (100 xp) is reached', () => {
-    expect(computeLevelInfo(99)).toEqual({
+  it('stays level 1 until the level-1 threshold (20 xp) is reached', () => {
+    expect(computeLevelInfo(19)).toEqual({
       level: 1,
-      xpIntoLevel: 99,
-      xpForNextLevel: 100,
+      xpIntoLevel: 19,
+      xpForNextLevel: 20,
     })
   })
 
-  it('advances to level 2 at exactly 100 xp', () => {
-    expect(computeLevelInfo(100)).toEqual({
+  it('advances to level 2 at exactly 20 xp', () => {
+    expect(computeLevelInfo(20)).toEqual({
       level: 2,
       xpIntoLevel: 0,
-      xpForNextLevel: 200,
+      xpForNextLevel: 40,
     })
   })
 
   it('accounts for increasing thresholds across multiple level-ups', () => {
-    // 100 (lvl1->2) + 200 (lvl2->3) = 300 to reach level 3
-    expect(computeLevelInfo(300)).toEqual({
+    // 20 (lvl1->2) + 40 (lvl2->3) = 60 to reach level 3
+    expect(computeLevelInfo(60)).toEqual({
       level: 3,
       xpIntoLevel: 0,
-      xpForNextLevel: 300,
+      xpForNextLevel: 60,
     })
   })
 
   it('carries partial progress into the current level', () => {
-    // 300 to reach level 3, +50 more into level 3
-    expect(computeLevelInfo(350)).toEqual({
+    // 60 to reach level 3, +10 more into level 3
+    expect(computeLevelInfo(70)).toEqual({
       level: 3,
-      xpIntoLevel: 50,
-      xpForNextLevel: 300,
+      xpIntoLevel: 10,
+      xpForNextLevel: 60,
     })
   })
 })
