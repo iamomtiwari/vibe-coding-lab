@@ -20,6 +20,35 @@ const MOUTH_PATHS = {
   happy: 'M75 130 Q100 168 125 130',
 }
 
+export const ACCESSORIES = [
+  { id: 'bowtie', label: 'Bow Tie', unlockLevel: 2 },
+  { id: 'hat', label: 'Hat', unlockLevel: 4 },
+  { id: 'glasses', label: 'Glasses', unlockLevel: 6 },
+]
+
+const ACCESSORY_LAYERS = {
+  bowtie: (
+    <g>
+      <path d="M85 168 L100 178 L85 188 Z" fill="#d64550" />
+      <path d="M115 168 L100 178 L115 188 Z" fill="#d64550" />
+      <circle cx="100" cy="178" r="5" fill="#a13342" />
+    </g>
+  ),
+  hat: (
+    <g>
+      <path d="M55 45 Q100 -10 145 45 Z" fill="#3b4a54" />
+      <rect x="45" y="40" width="110" height="12" rx="6" fill="#1f2933" />
+    </g>
+  ),
+  glasses: (
+    <g stroke="#1f2933" strokeWidth="4" fill="none">
+      <circle cx="75" cy="105" r="20" />
+      <circle cx="125" cy="105" r="20" />
+      <line x1="95" y1="105" x2="105" y2="105" />
+    </g>
+  ),
+}
+
 let nextHeartId = 0
 
 function PetAvatar({
@@ -27,6 +56,7 @@ function PetAvatar({
   color = '#f4a261',
   size = 160,
   expression = 'neutral',
+  equipped = [],
 }) {
   const svgRef = useRef(null)
   const [pupilOffset, setPupilOffset] = useState({ x: 0, y: 0 })
@@ -98,6 +128,11 @@ function PetAvatar({
           strokeLinecap="round"
           fill="none"
         />
+        {equipped.map((id) => (
+          <g key={id} className={`pet-accessory pet-accessory-${id}`}>
+            {ACCESSORY_LAYERS[id]}
+          </g>
+        ))}
       </svg>
       <div className="pet-hearts">
         {hearts.map((h) => (
