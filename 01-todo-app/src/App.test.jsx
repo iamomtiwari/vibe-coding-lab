@@ -95,6 +95,73 @@ describe('todo CRUD', () => {
   })
 })
 
+describe('editing todo text', () => {
+  it('double-clicking a todo swaps it into an editable input', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    await addTodo(user, 'Old text')
+
+    await user.dblClick(screen.getByText('Old text'))
+
+    expect(screen.getByLabelText('Edit "Old text"')).toBeInTheDocument()
+  })
+
+  it('saves the new text on Enter', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    await addTodo(user, 'Old text')
+
+    await user.dblClick(screen.getByText('Old text'))
+    const editInput = screen.getByLabelText('Edit "Old text"')
+    await user.clear(editInput)
+    await user.type(editInput, 'New text{Enter}')
+
+    expect(screen.getByText('New text')).toBeInTheDocument()
+    expect(screen.queryByText('Old text')).not.toBeInTheDocument()
+  })
+
+  it('saves the new text on blur', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    await addTodo(user, 'Old text')
+
+    await user.dblClick(screen.getByText('Old text'))
+    const editInput = screen.getByLabelText('Edit "Old text"')
+    await user.clear(editInput)
+    await user.type(editInput, 'Blurred text')
+    await user.tab()
+
+    expect(screen.getByText('Blurred text')).toBeInTheDocument()
+  })
+
+  it('discards changes on Escape', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    await addTodo(user, 'Old text')
+
+    await user.dblClick(screen.getByText('Old text'))
+    const editInput = screen.getByLabelText('Edit "Old text"')
+    await user.clear(editInput)
+    await user.type(editInput, 'Should not save{Escape}')
+
+    expect(screen.getByText('Old text')).toBeInTheDocument()
+    expect(screen.queryByText('Should not save')).not.toBeInTheDocument()
+  })
+
+  it('keeps the original text if saved empty', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    await addTodo(user, 'Old text')
+
+    await user.dblClick(screen.getByText('Old text'))
+    const editInput = screen.getByLabelText('Edit "Old text"')
+    await user.clear(editInput)
+    await user.keyboard('{Enter}')
+
+    expect(screen.getByText('Old text')).toBeInTheDocument()
+  })
+})
+
 describe('pet customization', () => {
   it('renames the pet', async () => {
     const user = userEvent.setup()

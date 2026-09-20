@@ -99,6 +99,8 @@ function App() {
   const [category, setCategory] = useState('')
   const [repeat, setRepeat] = useState('none')
   const [filter, setFilter] = useState('all')
+  const [editingId, setEditingId] = useState(null)
+  const [editingText, setEditingText] = useState('')
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(todos))
@@ -182,6 +184,25 @@ function App() {
 
   function deleteTodo(id) {
     setTodos((prev) => prev.filter((todo) => todo.id !== id))
+  }
+
+  function startEditing(todo) {
+    setEditingId(todo.id)
+    setEditingText(todo.text)
+  }
+
+  function saveEdit() {
+    const trimmed = editingText.trim()
+    if (trimmed) {
+      setTodos((prev) =>
+        prev.map((t) => (t.id === editingId ? { ...t, text: trimmed } : t))
+      )
+    }
+    setEditingId(null)
+  }
+
+  function cancelEdit() {
+    setEditingId(null)
   }
 
   function clearCompleted() {
@@ -387,13 +408,35 @@ function App() {
                       checked={todo.done}
                       onChange={() => toggleTodo(todo.id)}
                     />
-                    <span>{todo.text}</span>
+                    {editingId !== todo.id && (
+                      <span
+                        onDoubleClick={() => startEditing(todo)}
+                        title="Double-click to edit"
+                      >
+                        {todo.text}
+                      </span>
+                    )}
                     {todo.repeat !== 'none' && (
                       <span className="repeat-badge">
                         ↻ {REPEAT_LABELS[todo.repeat]}
                       </span>
                     )}
                   </label>
+                  {editingId === todo.id && (
+                    <input
+                      type="text"
+                      className="edit-input"
+                      value={editingText}
+                      autoFocus
+                      onChange={(e) => setEditingText(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') saveEdit()
+                        if (e.key === 'Escape') cancelEdit()
+                      }}
+                      onBlur={saveEdit}
+                      aria-label={`Edit "${todo.text}"`}
+                    />
+                  )}
                   <button
                     type="button"
                     className="delete"
