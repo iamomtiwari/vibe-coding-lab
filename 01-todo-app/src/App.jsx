@@ -55,7 +55,7 @@ function loadPet() {
 }
 
 // Level N requires N*100 XP to reach level N+1 (100, 200, 300, ...).
-function computeLevelInfo(xp) {
+export function computeLevelInfo(xp) {
   let level = 1
   let remaining = xp
   let xpForNextLevel = level * 100
@@ -75,7 +75,7 @@ const FILTERS = {
 
 // Recurring todos that were completed longer ago than their interval
 // automatically pop back to "not done" so they can be repeated.
-function resetDueRecurring(todos) {
+export function resetDueRecurring(todos) {
   const now = Date.now()
   return todos.map((todo) => {
     if (!todo.done || todo.repeat === 'none' || !todo.lastCompletedAt) {
@@ -140,6 +140,8 @@ function App() {
       },
     ])
     setText('')
+    setCategory('')
+    setRepeat('none')
   }
 
   function toggleTodo(id) {
