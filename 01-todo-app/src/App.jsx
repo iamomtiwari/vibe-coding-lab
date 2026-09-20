@@ -1,10 +1,15 @@
 import { useEffect, useState } from 'react'
+import PetAvatar from './PetAvatar'
 import './App.css'
 
 const STORAGE_KEY = 'todo-app.todos'
 const PROFILE_STORAGE_KEY = 'todo-app.profile'
+const PET_STORAGE_KEY = 'todo-app.pet'
 const UNCATEGORIZED = 'Uncategorized'
 const XP_PER_TASK = 10
+
+const PET_SHAPES = ['round', 'square', 'star']
+const DEFAULT_PET = { name: 'Buddy', shape: 'round', color: '#f4a261' }
 
 const REPEAT_INTERVAL_MS = {
   daily: 24 * 60 * 60 * 1000,
@@ -32,6 +37,15 @@ function loadProfile() {
     return raw ? JSON.parse(raw) : { xp: 0, questsCompleted: 0 }
   } catch {
     return { xp: 0, questsCompleted: 0 }
+  }
+}
+
+function loadPet() {
+  try {
+    const raw = localStorage.getItem(PET_STORAGE_KEY)
+    return raw ? { ...DEFAULT_PET, ...JSON.parse(raw) } : DEFAULT_PET
+  } catch {
+    return DEFAULT_PET
   }
 }
 
@@ -73,6 +87,7 @@ function resetDueRecurring(todos) {
 function App() {
   const [todos, setTodos] = useState(loadTodos)
   const [profile, setProfile] = useState(loadProfile)
+  const [pet, setPet] = useState(loadPet)
   const [text, setText] = useState('')
   const [category, setCategory] = useState('')
   const [repeat, setRepeat] = useState('none')
@@ -85,6 +100,10 @@ function App() {
   useEffect(() => {
     localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profile))
   }, [profile])
+
+  useEffect(() => {
+    localStorage.setItem(PET_STORAGE_KEY, JSON.stringify(pet))
+  }, [pet])
 
   // Check for due recurring todos on load, then poll periodically
   // in case the app is left open across the reset boundary.
@@ -174,6 +193,51 @@ function App() {
   return (
     <main className="app">
       <h1>Todo App</h1>
+
+      <section className="pet-panel">
+        <div className="pet-display">
+          <PetAvatar shape={pet.shape} color={pet.color} />
+          <span className="pet-name">{pet.name || 'Unnamed pet'}</span>
+        </div>
+        <div className="pet-controls">
+          <label className="pet-field">
+            Name
+            <input
+              type="text"
+              value={pet.name}
+              onChange={(e) =>
+                setPet((prev) => ({ ...prev, name: e.target.value }))
+              }
+              maxLength={20}
+            />
+          </label>
+          <label className="pet-field">
+            Shape
+            <select
+              value={pet.shape}
+              onChange={(e) =>
+                setPet((prev) => ({ ...prev, shape: e.target.value }))
+              }
+            >
+              {PET_SHAPES.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="pet-field">
+            Color
+            <input
+              type="color"
+              value={pet.color}
+              onChange={(e) =>
+                setPet((prev) => ({ ...prev, color: e.target.value }))
+              }
+            />
+          </label>
+        </div>
+      </section>
 
       <section className="stats-panel">
         <div className="stats-header">
