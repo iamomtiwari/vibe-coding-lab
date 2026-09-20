@@ -277,6 +277,15 @@ h1 {
   background: #f0f2f4;
 }
 
+.todo-list .edit-input {
+  flex: 1;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid #2563eb;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-family: inherit;
+}
+
 .todo-list .delete {
   border: none;
   background: transparent;
