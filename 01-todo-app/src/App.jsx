@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react'
 import './App.css'
 
 const STORAGE_KEY = 'todo-app.todos'
+const PROFILE_STORAGE_KEY = 'todo-app.profile'
 const UNCATEGORIZED = 'Uncategorized'
+const XP_PER_TASK = 10
 
 const REPEAT_INTERVAL_MS = {
   daily: 24 * 60 * 60 * 1000,
@@ -22,6 +24,28 @@ function loadTodos() {
   } catch {
     return []
   }
+}
+
+function loadProfile() {
+  try {
+    const raw = localStorage.getItem(PROFILE_STORAGE_KEY)
+    return raw ? JSON.parse(raw) : { xp: 0, questsCompleted: 0 }
+  } catch {
+    return { xp: 0, questsCompleted: 0 }
+  }
+}
+
+// Level N requires N*100 XP to reach level N+1 (100, 200, 300, ...).
+function computeLevelInfo(xp) {
+  let level = 1
+  let remaining = xp
+  let xpForNextLevel = level * 100
+  while (remaining >= xpForNextLevel) {
+    remaining -= xpForNextLevel
+    level += 1
+    xpForNextLevel = level * 100
+  }
+  return { level, xpIntoLevel: remaining, xpForNextLevel }
 }
 
 const FILTERS = {
@@ -48,6 +72,7 @@ function resetDueRecurring(todos) {
 
 function App() {
   const [todos, setTodos] = useState(loadTodos)
+  const [profile, setProfile] = useState(loadProfile)
   const [text, setText] = useState('')
   const [category, setCategory] = useState('')
   const [repeat, setRepeat] = useState('none')
@@ -56,6 +81,10 @@ function App() {
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(todos))
   }, [todos])
+
+  useEffect(() => {
+    localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profile))
+  }, [profile])
 
   // Check for due recurring todos on load, then poll periodically
   // in case the app is left open across the reset boundary.
@@ -97,6 +126,18 @@ function App() {
         }
       })
     )
+    // Manually checking a task awards XP; manually unchecking (an undo)
+    // takes it back. Automatic recurring resets skip this function entirely,
+    // so XP already earned for a past completion is never clawed back.
+    setProfile((prev) => {
+      const todo = todos.find((t) => t.id === id)
+      const nowDone = todo ? !todo.done : true
+      const delta = nowDone ? 1 : -1
+      return {
+        xp: Math.max(0, prev.xp + delta * XP_PER_TASK),
+        questsCompleted: Math.max(0, prev.questsCompleted + delta),
+      }
+    })
   }
 
   function deleteTodo(id) {
@@ -127,9 +168,37 @@ function App() {
     return a.localeCompare(b)
   })
 
+  const { level, xpIntoLevel, xpForNextLevel } = computeLevelInfo(profile.xp)
+  const progressPercent = Math.round((xpIntoLevel / xpForNextLevel) * 100)
+
   return (
     <main className="app">
       <h1>Todo App</h1>
+
+      <section className="stats-panel">
+        <div className="stats-header">
+          <span className="level-badge">Level {level}</span>
+          <span className="quests-completed">
+            {profile.questsCompleted} quest
+            {profile.questsCompleted === 1 ? '' : 's'} completed
+          </span>
+        </div>
+        <div
+          className="progress-bar"
+          role="progressbar"
+          aria-valuenow={xpIntoLevel}
+          aria-valuemin={0}
+          aria-valuemax={xpForNextLevel}
+        >
+          <div
+            className="progress-bar-fill"
+            style={{ width: `${progressPercent}%` }}
+          />
+        </div>
+        <span className="xp-label">
+          {xpIntoLevel} / {xpForNextLevel} XP to next level
+        </span>
+      </section>
 
       <form className="add-form" onSubmit={addTodo}>
         <input
