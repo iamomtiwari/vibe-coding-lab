@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import PetAvatar, { ACCESSORIES } from './PetAvatar'
+import PetAvatar, { ACCESSORIES, PET_COLORS, PET_SHAPES } from './PetAvatar'
 import './App.css'
 
 const STORAGE_KEY = 'todo-app.todos'
@@ -8,7 +8,6 @@ const PET_STORAGE_KEY = 'todo-app.pet'
 const UNCATEGORIZED = 'Uncategorized'
 const XP_PER_TASK = 10
 
-const PET_SHAPES = ['round', 'square', 'star']
 const DEFAULT_PET = {
   name: 'Buddy',
   shape: 'round',
@@ -256,222 +255,235 @@ function App() {
     <main className="app">
       <h1>Todo App</h1>
 
-      <section className="pet-panel">
-        <div className="pet-display">
-          <PetAvatar
-            shape={pet.shape}
-            color={pet.color}
-            expression={petExpression}
-            equipped={unlockedEquipped}
-          />
-          <span className="pet-name">{pet.name || 'Unnamed pet'}</span>
-        </div>
-        <div className="pet-controls">
-          <label className="pet-field">
-            Name
+      <div className="layout">
+        <div className="main-column">
+          <form className="add-form" onSubmit={addTodo}>
             <input
               type="text"
-              value={pet.name}
-              onChange={(e) =>
-                setPet((prev) => ({ ...prev, name: e.target.value }))
-              }
-              maxLength={20}
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder="What needs to be done?"
+              aria-label="New todo"
             />
-          </label>
-          <label className="pet-field">
-            Shape
-            <select
-              value={pet.shape}
-              onChange={(e) =>
-                setPet((prev) => ({ ...prev, shape: e.target.value }))
-              }
-            >
-              {PET_SHAPES.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="pet-field">
-            Color
             <input
-              type="color"
-              value={pet.color}
-              onChange={(e) =>
-                setPet((prev) => ({ ...prev, color: e.target.value }))
-              }
+              type="text"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              placeholder="Category (optional)"
+              aria-label="Category"
+              list="known-categories"
+              className="category-input"
             />
-          </label>
-        </div>
-      </section>
-
-      <section className="accessories-panel">
-        <h2 className="group-title">Accessories</h2>
-        <ul className="accessories-list">
-          {ACCESSORIES.map((accessory) => {
-            const unlocked = level >= accessory.unlockLevel
-            const isEquipped = pet.equipped.includes(accessory.id)
-            return (
-              <li key={accessory.id} className={unlocked ? '' : 'locked'}>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={unlocked && isEquipped}
-                    disabled={!unlocked}
-                    onChange={() => toggleAccessory(accessory.id)}
-                  />
-                  {accessory.label}
-                </label>
-                {!unlocked && (
-                  <span className="unlock-hint">
-                    Unlocks at level {accessory.unlockLevel}
-                  </span>
-                )}
-              </li>
-            )
-          })}
-        </ul>
-      </section>
-
-      <section className="stats-panel">
-        <div className="stats-header">
-          <span className="level-badge">Level {level}</span>
-          <span className="quests-completed">
-            {profile.questsCompleted} quest
-            {profile.questsCompleted === 1 ? '' : 's'} completed
-          </span>
-        </div>
-        <div
-          className="progress-bar"
-          role="progressbar"
-          aria-valuenow={xpIntoLevel}
-          aria-valuemin={0}
-          aria-valuemax={xpForNextLevel}
-        >
-          <div
-            className="progress-bar-fill"
-            style={{ width: `${progressPercent}%` }}
-          />
-        </div>
-        <span className="xp-label">
-          {xpIntoLevel} / {xpForNextLevel} XP to next level
-        </span>
-      </section>
-
-      <form className="add-form" onSubmit={addTodo}>
-        <input
-          type="text"
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder="What needs to be done?"
-          aria-label="New todo"
-        />
-        <input
-          type="text"
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          placeholder="Category (optional)"
-          aria-label="Category"
-          list="known-categories"
-          className="category-input"
-        />
-        <datalist id="known-categories">
-          {knownCategories.map((c) => (
-            <option key={c} value={c} />
-          ))}
-        </datalist>
-        <select
-          value={repeat}
-          onChange={(e) => setRepeat(e.target.value)}
-          aria-label="Repeat"
-        >
-          <option value="none">One-time</option>
-          <option value="daily">Daily</option>
-          <option value="weekly">Weekly</option>
-        </select>
-        <button type="submit">Add</button>
-      </form>
-
-      {todos.length === 0 ? (
-        <p className="empty-state">No todos yet. Add one above.</p>
-      ) : (
-        groupNames.map((groupName) => (
-          <section key={groupName} className="todo-group">
-            <h2 className="group-title">{groupName}</h2>
-            <ul className="todo-list">
-              {groups[groupName].map((todo) => (
-                <li key={todo.id} className={todo.done ? 'done' : ''}>
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={todo.done}
-                      onChange={() => toggleTodo(todo.id)}
-                    />
-                    {editingId !== todo.id && (
-                      <span
-                        onDoubleClick={() => startEditing(todo)}
-                        title="Double-click to edit"
-                      >
-                        {todo.text}
-                      </span>
-                    )}
-                    {todo.repeat !== 'none' && (
-                      <span className="repeat-badge">
-                        ↻ {REPEAT_LABELS[todo.repeat]}
-                      </span>
-                    )}
-                  </label>
-                  {editingId === todo.id && (
-                    <input
-                      type="text"
-                      className="edit-input"
-                      value={editingText}
-                      autoFocus
-                      onChange={(e) => setEditingText(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') saveEdit()
-                        if (e.key === 'Escape') cancelEdit()
-                      }}
-                      onBlur={saveEdit}
-                      aria-label={`Edit "${todo.text}"`}
-                    />
-                  )}
-                  <button
-                    type="button"
-                    className="delete"
-                    onClick={() => deleteTodo(todo.id)}
-                    aria-label={`Delete "${todo.text}"`}
-                  >
-                    ×
-                  </button>
-                </li>
+            <datalist id="known-categories">
+              {knownCategories.map((c) => (
+                <option key={c} value={c} />
               ))}
+            </datalist>
+            <select
+              value={repeat}
+              onChange={(e) => setRepeat(e.target.value)}
+              aria-label="Repeat"
+            >
+              <option value="none">One-time</option>
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+            </select>
+            <button type="submit">Add</button>
+          </form>
+
+          {todos.length === 0 ? (
+            <p className="empty-state">No todos yet. Add one above.</p>
+          ) : (
+            groupNames.map((groupName) => (
+              <section key={groupName} className="todo-group">
+                <h2 className="group-title">{groupName}</h2>
+                <ul className="todo-list">
+                  {groups[groupName].map((todo) => (
+                    <li key={todo.id} className={todo.done ? 'done' : ''}>
+                      <label>
+                        <input
+                          type="checkbox"
+                          checked={todo.done}
+                          onChange={() => toggleTodo(todo.id)}
+                        />
+                        {editingId !== todo.id && (
+                          <span
+                            onDoubleClick={() => startEditing(todo)}
+                            title="Double-click to edit"
+                          >
+                            {todo.text}
+                          </span>
+                        )}
+                        {todo.repeat !== 'none' && (
+                          <span className="repeat-badge">
+                            ↻ {REPEAT_LABELS[todo.repeat]}
+                          </span>
+                        )}
+                      </label>
+                      {editingId === todo.id && (
+                        <input
+                          type="text"
+                          className="edit-input"
+                          value={editingText}
+                          autoFocus
+                          onChange={(e) => setEditingText(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') saveEdit()
+                            if (e.key === 'Escape') cancelEdit()
+                          }}
+                          onBlur={saveEdit}
+                          aria-label={`Edit "${todo.text}"`}
+                        />
+                      )}
+                      <button
+                        type="button"
+                        className="delete"
+                        onClick={() => deleteTodo(todo.id)}
+                        aria-label={`Delete "${todo.text}"`}
+                      >
+                        ×
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ))
+          )}
+
+          {todos.length > 0 && (
+            <footer className="footer">
+              <span>{activeCount} item{activeCount === 1 ? '' : 's'} left</span>
+              <div className="filters">
+                {Object.keys(FILTERS).map((key) => (
+                  <button
+                    key={key}
+                    type="button"
+                    className={filter === key ? 'active' : ''}
+                    onClick={() => setFilter(key)}
+                  >
+                    {key}
+                  </button>
+                ))}
+              </div>
+              <button type="button" onClick={clearCompleted}>
+                Clear completed
+              </button>
+            </footer>
+          )}
+        </div>
+
+        <aside className="sidebar">
+          <section className="pet-panel">
+            <div className="pet-display">
+              <PetAvatar
+                shape={pet.shape}
+                color={pet.color}
+                expression={petExpression}
+                equipped={unlockedEquipped}
+              />
+              <span className="pet-name">{pet.name || 'Unnamed pet'}</span>
+            </div>
+            <div className="pet-controls">
+              <label className="pet-field">
+                Name
+                <input
+                  type="text"
+                  value={pet.name}
+                  onChange={(e) =>
+                    setPet((prev) => ({ ...prev, name: e.target.value }))
+                  }
+                  maxLength={20}
+                />
+              </label>
+              <label className="pet-field">
+                Shape
+                <select
+                  value={pet.shape}
+                  onChange={(e) =>
+                    setPet((prev) => ({ ...prev, shape: e.target.value }))
+                  }
+                >
+                  {PET_SHAPES.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <div className="pet-field">
+                <span>Color</span>
+                <div className="color-swatches" role="radiogroup" aria-label="Pet color">
+                  {PET_COLORS.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      role="radio"
+                      aria-checked={pet.color === c}
+                      className={`color-swatch${pet.color === c ? ' selected' : ''}`}
+                      style={{ backgroundColor: c }}
+                      aria-label={c}
+                      onClick={() => setPet((prev) => ({ ...prev, color: c }))}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="accessories-panel">
+            <h2 className="group-title">Accessories</h2>
+            <ul className="accessories-list">
+              {ACCESSORIES.map((accessory) => {
+                const unlocked = level >= accessory.unlockLevel
+                const isEquipped = pet.equipped.includes(accessory.id)
+                return (
+                  <li key={accessory.id} className={unlocked ? '' : 'locked'}>
+                    <label>
+                      <input
+                        type="checkbox"
+                        checked={unlocked && isEquipped}
+                        disabled={!unlocked}
+                        onChange={() => toggleAccessory(accessory.id)}
+                      />
+                      {accessory.label}
+                    </label>
+                    {!unlocked && (
+                      <span className="unlock-hint">
+                        Unlocks at level {accessory.unlockLevel}
+                      </span>
+                    )}
+                  </li>
+                )
+              })}
             </ul>
           </section>
-        ))
-      )}
 
-      {todos.length > 0 && (
-        <footer className="footer">
-          <span>{activeCount} item{activeCount === 1 ? '' : 's'} left</span>
-          <div className="filters">
-            {Object.keys(FILTERS).map((key) => (
-              <button
-                key={key}
-                type="button"
-                className={filter === key ? 'active' : ''}
-                onClick={() => setFilter(key)}
-              >
-                {key}
-              </button>
-            ))}
-          </div>
-          <button type="button" onClick={clearCompleted}>
-            Clear completed
-          </button>
-        </footer>
-      )}
+          <section className="stats-panel">
+            <div className="stats-header">
+              <span className="level-badge">Level {level}</span>
+              <span className="quests-completed">
+                {profile.questsCompleted} quest
+                {profile.questsCompleted === 1 ? '' : 's'} completed
+              </span>
+            </div>
+            <div
+              className="progress-bar"
+              role="progressbar"
+              aria-valuenow={xpIntoLevel}
+              aria-valuemin={0}
+              aria-valuemax={xpForNextLevel}
+            >
+              <div
+                className="progress-bar-fill"
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
+            <span className="xp-label">
+              {xpIntoLevel} / {xpForNextLevel} XP to next level
+            </span>
+          </section>
+        </aside>
+      </div>
     </main>
   )
 }
