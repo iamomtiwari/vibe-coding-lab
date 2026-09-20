@@ -6,7 +6,26 @@ const BODY_SHAPES = {
   star: (
     <path d="M100 20 L120 80 L184 80 L132 118 L152 180 L100 142 L48 180 L68 118 L16 80 L80 80 Z" />
   ),
+  diamond: (
+    <rect x="45" y="45" width="110" height="110" rx="16" transform="rotate(45 100 100)" />
+  ),
+  blob: (
+    <path d="M100 40 C140 40 172 65 172 106 C172 146 144 187 100 189 C56 191 29 149 30 108 C31 68 60 40 100 40 Z" />
+  ),
 }
+
+export const PET_SHAPES = Object.keys(BODY_SHAPES)
+
+export const PET_COLORS = [
+  '#f4a261',
+  '#e76f51',
+  '#2a9d8f',
+  '#e9c46a',
+  '#8ecae6',
+  '#a685e2',
+  '#ff6b9d',
+  '#6c757d',
+]
 
 const EYE_CENTERS = [
   { x: 75, y: 105 },
