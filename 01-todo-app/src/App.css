@@ -390,3 +390,50 @@ h1 {
   border-color: #2563eb;
   color: #2563eb;
 }
+
+.forest-panel {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e4e7eb;
+}
+
+.forest-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  align-items: flex-end;
+  padding: 1rem 0.5rem 0;
+  background: linear-gradient(to bottom, transparent 85%, #e8dfc8 85%);
+  border-radius: 8px;
+}
+
+.plant {
+  flex-shrink: 0;
+}
+
+.plant-ground {
+  fill: #c9a869;
+}
+
+.plant-seed {
+  fill: #8a5a34;
+}
+
+.plant-tree {
+  transform-origin: 30px 64px;
+  animation: plant-grow 0.6s ease-out;
+}
+
+@keyframes plant-grow {
+  0% {
+    transform: scale(0.2);
+    opacity: 0.4;
+  }
+  70% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}

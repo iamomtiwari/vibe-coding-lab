@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import PetAvatar, { ACCESSORIES, PET_COLORS, PET_SHAPES } from './PetAvatar'
+import TodoForest from './TodoForest'
 import './App.css'
 
 const STORAGE_KEY = 'todo-app.todos'
@@ -135,6 +136,7 @@ function App() {
         id: crypto.randomUUID(),
         text: trimmed,
         done: false,
+        grown: false,
         category: category.trim(),
         repeat,
         lastCompletedAt: null,
@@ -156,6 +158,10 @@ function App() {
           ? {
               ...t,
               done: nowDone,
+              // Growth mirrors manual toggles only. Automatic recurring resets
+              // (resetDueRecurring) never touch `grown`, so once a seed sprouts
+              // it stays a tree even after the daily/weekly checkbox resets.
+              grown: nowDone,
               lastCompletedAt: nowDone && t.repeat !== 'none' ? Date.now() : null,
             }
           : t
@@ -484,6 +490,8 @@ function App() {
           </section>
         </aside>
       </div>
+
+      <TodoForest todos={todos} />
     </main>
   )
 }

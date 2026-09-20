@@ -86,6 +86,20 @@ describe('resetDueRecurring', () => {
     expect(result[0]).toMatchObject({ done: false, lastCompletedAt: null })
   })
 
+  it('leaves the grown flag untouched when a recurring todo auto-resets', () => {
+    const todos = [
+      {
+        id: '1',
+        done: true,
+        grown: true,
+        repeat: 'daily',
+        lastCompletedAt: Date.now() - 25 * HOUR,
+      },
+    ]
+    const result = resetDueRecurring(todos)
+    expect(result[0]).toMatchObject({ done: false, grown: true })
+  })
+
   it('does not reset a weekly todo after only 1 day', () => {
     const todos = [
       {

@@ -174,3 +174,43 @@ describe('pet customization', () => {
     expect(screen.getByText('Sparky')).toBeInTheDocument()
   })
 })
+
+describe('todo forest', () => {
+  it('shows the empty-forest prompt with no todos', () => {
+    render(<App />)
+    expect(
+      screen.getByText('Add a todo to plant your first seed.')
+    ).toBeInTheDocument()
+  })
+
+  it('plants a seed for each new todo', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    await addTodo(user, 'First quest')
+    await addTodo(user, 'Second quest')
+
+    expect(screen.getByText('Forest · 0 / 2 grown')).toBeInTheDocument()
+  })
+
+  it('grows a tree when a todo is completed', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    await addTodo(user, 'First quest')
+
+    await user.click(screen.getByRole('checkbox', { name: 'First quest' }))
+
+    expect(screen.getByText('Forest · 1 / 1 grown')).toBeInTheDocument()
+  })
+
+  it('reverts the tree to a seed on manual undo', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    await addTodo(user, 'First quest')
+    const checkbox = screen.getByRole('checkbox', { name: 'First quest' })
+
+    await user.click(checkbox)
+    await user.click(checkbox)
+
+    expect(screen.getByText('Forest · 0 / 1 grown')).toBeInTheDocument()
+  })
+})
